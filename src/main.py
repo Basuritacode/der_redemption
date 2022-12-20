@@ -17,7 +17,7 @@ class Game():
         self.setup()
 
     def setup(self):
-        Player((100,100), self.all_sprites, None, None)
+        Player((100,100), self.all_sprites, PATHS['player'], None)
 
     def terminate(self):
         ''' Terminates pygame execution and uses sys.exit to kill the whole program'''
@@ -30,7 +30,7 @@ class Game():
             update functions and delta declaration
         '''
         while True:
-            delta = self.clock.tick() / 100
+            delta = self.clock.tick() / 1000
             
             # Event loop
             for event in pygame.event.get():
