@@ -7,7 +7,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__(groups)
         self.import_assets(path)
         self.frame_index = 0
-        self.status = 'down_idle'
+        self.status = 'down'
 
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center = position)
@@ -20,6 +20,9 @@ class Player(pygame.sprite.Sprite):
         # Coliisions
         self.hitbox = self.rect.inflate(0, -self.rect.height / 2)
         self.colliders = colliders
+
+        # Attack
+        self.is_attacking = False
 
     def import_assets(self, path):
         self.animations = {} # k:anim_status v: anim_frames
@@ -35,15 +38,29 @@ class Player(pygame.sprite.Sprite):
                     key = folder[0].split('\\')[1] 
                     self.animations[key].append(frame_surf)
 
+    def get_status(self):
+        # Idle
+        if self.direction.magnitude() == 0: 
+            self.status = self.status.split('_')[0] + '_idle'
+        # Attacking
+        if self.is_attacking:
+            self.status = self.status.split('_')[0] + '_attack'
+        
     def animate(self, delta):
         current_animation = self.animations[self.status] 
         self.frame_index += 8 * delta
-        self.frame_index %= len(current_animation)
+        if self.frame_index >= len(current_animation):
+            self.frame_index = 0 
+            self.is_attacking = False
+    
         self.image = current_animation[int(self.frame_index)]
 
     def input(self):
         keys = pygame.key.get_pressed()
+        
+        if self.is_attacking: return
 
+        # Movement
         if keys[pygame.K_UP]:
             self.status = 'up'
             self.direction.y = -1
@@ -52,8 +69,7 @@ class Player(pygame.sprite.Sprite):
             self.direction.y = 1
         else:
             self.direction.y = 0
-
-
+        
         if keys[pygame.K_LEFT]:
             self.status = 'left'
             self.direction.x = -1
@@ -62,6 +78,12 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 1
         else:
             self.direction.x = 0
+
+        # Attack
+        if keys[pygame.K_SPACE]:
+            self.is_attacking = True
+            self.direction = Vector2()
+            self.frame_index = 0
 
     def move(self, delta):
         if self.direction.magnitude() != 0:
@@ -79,8 +101,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.centery = self.hitbox.centery
         #TODO: Vertical collition
 
+        # 
+
     def update(self, delta):
         self.input()
+        self.get_status()
         self.move(delta)
         self.animate(delta)
         
