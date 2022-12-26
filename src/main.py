@@ -2,6 +2,7 @@ import pygame, sys
 from settings import *
 from player import Player
 from sprite import Sprite, Bullet
+from monster import Coffin, Cactus
 from pygame.math import Vector2
 from pytmx.util_pygame import load_pygame
 
@@ -65,6 +66,12 @@ class Game():
                     colliders = self.obstacles,
                     spawn_bullet = self.spawn_bullet
                 )
+            
+            if obj.name == 'Coffin':
+                Coffin((obj.x, obj.y), self.all_sprites, PATHS['coffin'], self.obstacles)
+            if obj.name == 'Cactus':
+                Cactus((obj.x, obj.y), self.all_sprites, PATHS['cactus'], self.obstacles)
+
 
     def terminate(self):
         ''' Terminates pygame execution and uses sys.exit to kill the whole program'''
