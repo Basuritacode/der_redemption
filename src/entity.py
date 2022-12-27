@@ -7,7 +7,8 @@ class Entity(pygame.sprite.Sprite):
         super().__init__(groups)
         self.import_assets(path)
         self.frame_index = 0
-        self.status = 'down'
+        self.fps = 8
+        self.status = 'down_idle'
 
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center = position)

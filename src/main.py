@@ -64,7 +64,7 @@ class Game():
                     groups = self.all_sprites, 
                     path = PATHS['player'], 
                     colliders = self.obstacles,
-                    spawn_bullet = self.spawn_bullet
+                    spawn_bullet = self.spawn_bullet 
                 )
             
             if obj.name == 'Coffin':
