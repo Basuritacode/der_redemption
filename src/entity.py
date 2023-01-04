@@ -1,6 +1,7 @@
 import pygame
 from os import walk
 from pygame.math import Vector2
+from math import sin
 
 class Entity(pygame.sprite.Sprite):
     def __init__(self, position, groups, path, colliders ) -> None:
@@ -9,6 +10,7 @@ class Entity(pygame.sprite.Sprite):
         self.frame_index = 0
         self.fps = 8
         self.status = 'down_idle'
+        self.sfx = pygame.mixer.Sound('sound/hit.mp3')
 
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center = position)
@@ -21,9 +23,15 @@ class Entity(pygame.sprite.Sprite):
         # Coliisions
         self.hitbox = self.rect.inflate(-self.rect.width/2, -self.rect.height / 2)
         self.colliders = colliders
+        self.mask = pygame.mask.from_surface(self.image)
 
         # Attack
         self.is_attacking = False
+
+        # Health
+        self.health = 3
+        self.is_vulnerable = True
+        self.inv_frames = None
 
     def import_assets(self, path):
         self.animations = {} # k:anim_status v: anim_frames
@@ -75,3 +83,29 @@ class Entity(pygame.sprite.Sprite):
                 
                     self.rect.centery = self.hitbox.centery
                     self.position.y = self.hitbox.centery
+
+    def deal_damage(self):
+        
+        if self.is_vulnerable:
+            self.health -= 1
+            self.is_vulnerable = False
+            self.inv_frames = pygame.time.get_ticks()
+            self.sfx.play()
+    
+    def die(self):
+        if self.health <= 0:
+            self.kill()
+
+    def inv_timer(self):
+        if not self.is_vulnerable:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.inv_frames > 400:
+                self.is_vulnerable = True
+
+    def blink(self):
+        if self.is_vulnerable: return
+        if sin(pygame.time.get_ticks()) < 0:
+            mask = pygame.mask.from_surface(self.image)
+            white_surf = mask.to_surface()
+            white_surf.set_colorkey((0,0,0))
+            self.image = white_surf

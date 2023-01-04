@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 from pygame.math import Vector2
 from entity import Entity
 
@@ -21,8 +21,9 @@ class Player(Entity):
         current_animation = self.animations[self.status] 
         self.frame_index += 8 * delta
 
+        # Shoot in the correct frame
         if int(self.frame_index) == 2 and self.is_attacking and not self.bullet_shot:
-            bullet_offset = self.rect.center + self.bullet_dir * 70
+            bullet_offset = self.rect.center + self.bullet_dir * 80
             self.spawn_bullet(bullet_offset, self.bullet_dir)
             self.bullet_shot = True
 
@@ -31,6 +32,7 @@ class Player(Entity):
             self.is_attacking = False
     
         self.image = current_animation[int(self.frame_index)]
+        self.mask = pygame.mask.from_surface(self.image)
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -70,9 +72,17 @@ class Player(Entity):
                 case 'left': self.bullet_dir = Vector2(-1,0)
                 case 'right': self.bullet_dir = Vector2(1,0)
 
+    def die(self):
+        if self.health <= 0:
+            pygame.quit()
+            sys.exit()
+
     def update(self, delta):
         self.input()
         self.get_status()
         self.move(delta)
         self.animate(delta)
+        self.blink()
+        self.inv_timer()
+        self.die()
         

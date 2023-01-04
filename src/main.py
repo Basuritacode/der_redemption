@@ -6,6 +6,9 @@ from monster import Coffin, Cactus
 from pygame.math import Vector2
 from pytmx.util_pygame import load_pygame
 
+# Sounds
+
+
 class AllSprites(pygame.sprite.Group): #Camera Class: Centered to the player
     ''' The player keeps at the center of the screen
     all the other objects get offsetted relative to the player
@@ -43,6 +46,13 @@ class Game():
         self.all_sprites = AllSprites()
         self.obstacles = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
+        self.monsters = pygame.sprite.Group()
+
+        # Music
+        self.music = pygame.mixer.Sound('sound/music.mp3')
+        self.music.set_volume(0.5)
+        self.music.play(-1)
+
         self.setup()
     
     def spawn_bullet(self, position, direction):
@@ -68,16 +78,32 @@ class Game():
                 )
             
             if obj.name == 'Coffin':
-                Coffin((obj.x, obj.y), self.all_sprites, PATHS['coffin'], self.obstacles, self.player)
+                Coffin((obj.x, obj.y), [self.all_sprites, self.monsters], PATHS['coffin'], self.obstacles, self.player)
             if obj.name == 'Cactus':
-                Cactus((obj.x, obj.y), self.all_sprites, PATHS['cactus'], self.obstacles, self.player)
-
+                Cactus((obj.x, obj.y), [self.all_sprites, self.monsters], PATHS['cactus'], self.obstacles, self.player, self.spawn_bullet)
 
     def terminate(self):
         ''' Terminates pygame execution and uses sys.exit to kill the whole program'''
         pygame.quit()
         sys.exit()
    
+    def bullet_collision(self):
+        # Player Collision
+        if pygame.sprite.spritecollide(self.player, self.bullets, True, pygame.sprite.collide_mask):
+            self.player.deal_damage()
+
+        # Obstacle Collision
+        for obstacle in self.obstacles.sprites():
+            pygame.sprite.spritecollide(obstacle, self.bullets, True, pygame.sprite.collide_mask)
+        
+        # Monster Collision
+        for bullet in self.bullets.sprites():
+            sprites = pygame.sprite.spritecollide(bullet, self.monsters, False, pygame.sprite.collide_mask)
+            if sprites:
+                bullet.kill()
+                for sprite in sprites:
+                    sprite.deal_damage()
+
     def run(self): 
         ''' Contains the main game loop. 
             includes the event loop, 
@@ -93,6 +119,7 @@ class Game():
 
             # Update gruops
             self.all_sprites.update(delta)
+            self.bullet_collision()
 
             # Draw groups
             self.display.fill('black')
